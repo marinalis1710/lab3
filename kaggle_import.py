@@ -11,7 +11,7 @@ filename = "hotaling_cocktails-Cocktails.csv"
 
 with open(filename, newline='') as file:
     reader = csv.DictReader(file)
-    tables = ['Bar', 'Human', 'Cocktail', 'HumanCocktail', 'HumanBar']
+    tables = ['Bar', 'Human', 'Cocktail', 'HumanCocktail', 'HumanBar', 'City']
     for i in tables:
         cursor.execute("DELETE FROM " + i)
     cocktail_list = []
