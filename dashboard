@@ -1,0 +1,119 @@
+import chart_studio
+import re
+chart_studio.tools.set_credentials_file(username='mLisichenko', api_key='rLe5IE9YwSHvKavAOmQr')
+import plotly.graph_objects as go
+import chart_studio.plotly as py
+import cx_Oracle
+import chart_studio.dashboard_objs as dash
+
+
+def fileId_from_url(url):
+    raw_fileId = re.findall("~[A-z.0-9]+/[0-9]+", url)[0][1: ]
+    return raw_fileId.replace('/', ':')
+
+username = 'Marina'
+password = 'xu40e5'
+database = 'localhost/xe'
+connection = cx_Oracle.connect(username, password, database)
+cursor = connection.cursor()
+
+print("Запит 1: Кіл-ть барменів в кожному барі")
+query1 = """
+select bar_name,
+count(human_name) as total_humans from party
+group by bar_name
+order by total_humans desc
+"""
+cursor.execute(query1)
+
+bar_name = []
+quantity_bartenders = []
+for data in cursor.fetchall():
+    bar_name.append(data[0])
+    quantity_bartenders.append(data[1])
+
+bar = go.Bar(x=bar_name, y=quantity_bartenders)
+stolbec = py.plot([bar], auto_open=True, filename='oracle-data')
+
+
+print("Запит 2: Співвідношення барменів у кожному барі від їх загальної кіл-ті")
+
+query2 = """
+select bar_name,
+count(human_name)*100/(
+select count(*) from humanbar) as procent_of_total_bartenders from party
+group by bar_name
+"""
+cursor.execute(query2)
+
+bar_name2 = []
+quantity_bartenders2 = []
+
+for row in cursor.fetchall():
+    bar_name2.append(row[0])
+    quantity_bartenders2.append(row[1])
+pie = go.Pie(labels=bar_name2, values=quantity_bartenders2)
+procent = py.plot([pie], auto_open=True)
+
+
+print("Запит 3: Залежність кіл-ті коктейлів від розположення бару")
+
+query3 = """
+select count(cocktail_name) as quantity_of_cocktails,
+city_name
+from party                     
+group by city_name
+order by quantity_of_cocktails desc
+"""
+cursor.execute(query3)
+
+quantity = []
+location = []
+
+for data in cursor.fetchall():
+    quantity.append(data[0])
+    location.append(data[1])
+
+scatter = go.Scatter(
+    x=location,
+    y=quantity
+)
+
+dynamic = py.plot([scatter], auto_open=True)
+
+
+my_dboard = dash.Dashboard()
+stolbec_id = fileId_from_url(stolbec)
+procent_id = fileId_from_url(procent)
+dynamic_id = fileId_from_url(dynamic)
+box_1= {
+    'type': 'box',
+    'boxType': 'plot',
+    'fileId': stolbec_id,
+    'title': 'Запит 1: Кіл-ть барменів в кожному барі'
+}
+
+box_2 = {
+    'type': 'box',
+    'boxType': 'plot',
+    'fileId': procent_id,
+    'title': 'Запит 2: Співвідношення барменів у кожному барі від їх загальної кіл-ті'
+
+}
+
+box_3 = {
+    'type': 'box',
+    'boxType': 'plot',
+    'fileId': dynamic_id,
+    'title': 'Запит 3: Залежність кіл-ті коктейлів від розположення бару'
+}
+
+
+my_dboard.insert(box_1)
+my_dboard.insert(box_2, 'below', 1)
+my_dboard.insert(box_3, 'right', 2)
+
+py.dashboard_ops.upload(my_dboard, 'lab2')
+
+cursor.close()
+connection.close()
