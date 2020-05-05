@@ -7,19 +7,20 @@ database = 'localhost/xe'
 connection = cx_Oracle.connect(username, password, database)
 cursor = connection.cursor()
 
-filename = "hotaling_cocktails-Cocktails.csv"
+filename = "Cocktails.csv"
 
 with open(filename, newline='') as file:
     reader = csv.DictReader(file)
-    tables = ['Bar', 'Human', 'Cocktail', 'HumanCocktail', 'HumanBar', 'City']
+    tables = ['HumanCocktail', 'HumanBar', 'Bar', 'Human', 'Cocktail', 'City']
     for i in tables:
         cursor.execute("DELETE FROM " + i)
     cocktail_list = []
     human_list = []
     city_list = []
 
-    try:
-        for row in reader:
+
+    for row in reader:
+        try:
             cocktail_name = row['Cocktail Name']
             human_name = row['Bartender']
             bar_name = row['Bar/Company']
@@ -48,10 +49,10 @@ with open(filename, newline='') as file:
 
             query = """INSERT INTO HumanCocktail(human_name, cocktail_name) VALUES (:human_name, :cocktail_name)"""
             cursor.execute(query, human_name=human_name, cocktail_name=cocktail_name)
-            
-    except:
-        raise
-    finally:
-        connection.commit()
-        cursor.close()
-        connection.close()
+
+        except:
+            pass
+
+connection.commit()
+cursor.close()
+connection.close()
