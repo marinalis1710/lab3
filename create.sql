@@ -7,7 +7,7 @@ city_name varchar(20) primary key
 -- Create Cocktails table
 -------------------------
 
-CREATE TABLE  Cocktails 
+CREATE TABLE  Cocktail 
 (
 cocktail_name varchar(50) NOT NULL PRIMARY KEY
 );
