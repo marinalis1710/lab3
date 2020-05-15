@@ -1,0 +1,16 @@
+create table citys(
+city_names varchar(20),
+num int primary key
+);
+
+declare
+    num int;
+    city varchar(15);
+begin
+    num :=0;
+    city :='city';
+    FOR i IN 1..10 LOOP 
+    INSERT INTO citys(city_names, num) 
+        VALUES (city, i);
+    end loop;
+end;
